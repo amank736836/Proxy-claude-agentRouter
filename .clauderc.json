@@ -1,0 +1,7 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:8083",
+    "ANTHROPIC_API_KEY": "sk-agent-router-proxy"
+  }
+}
+
