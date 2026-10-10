@@ -71,6 +71,10 @@ function fetchModels() {
 }
 
 const PORT = 8083
+// Bind to loopback only by default. The proxy holds your Agent Router API key and
+// has no authentication, so it must not be reachable from other machines on the
+// network. Set AGENT_ROUTER_HOST=0.0.0.0 explicitly only if you know what you're doing.
+const HOST = process.env.AGENT_ROUTER_HOST || '127.0.0.1'
 
 // ─── ANSI colours ─────────────────────────────────────────────────────────────
 const C = {
@@ -361,7 +365,6 @@ app.post('/v1/messages', async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
-    res.setHeader('Access-Control-Allow-Origin', '*')
 
     const msgId = 'msg_' + Date.now()
     sse(res, {
@@ -450,8 +453,8 @@ app.post('/v1/messages', async (req, res) => {
 app.get('/health', (_, res) => res.json({ status: 'ok', model: SELECTED_MODEL, backend: AGENT_ROUTER_BASE_URL, available_models: AVAILABLE_MODELS }))
 app.get('/v1/models', (_, res) => res.json({ data: AVAILABLE_MODELS.map(id => ({ id, object: 'model', owned_by: 'agentrouter' })) }))
 
-app.listen(PORT, () => {
-  console.log(`\n${C.cyan}${C.bold}🚀  Anthropic → Agent Router Proxy${C.reset}  →  ${C.green}http://localhost:${PORT}${C.reset}`)
+app.listen(PORT, HOST, () => {
+  console.log(`\n${C.cyan}${C.bold}🚀  Anthropic → Agent Router Proxy${C.reset}  →  ${C.green}http://${HOST}:${PORT}${C.reset}`)
   console.log(`${C.blue}📡  Backend${C.reset} : ${AGENT_ROUTER_BASE_URL}`)
   console.log(`${C.magenta}🤖  Model  ${C.reset} : ${C.bold}${SELECTED_MODEL}${C.reset}`)
   console.log(`${C.yellow}🚦  Rate limit${C.reset}: ${RPM_LIMIT}/min (queue cap ${RPM_MAX_WAIT_MS/1000}s, backoff ${RPM_429_BACKOFF_MS/1000}s on upstream 429)`)
